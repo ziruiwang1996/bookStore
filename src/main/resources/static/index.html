@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot and JavaScript Button Example</title>
+</head>
+<body>
+<h1 id="message">Welcome to Spring Boot and JavaScript!</h1>
+
+<!-- Button to trigger the JavaScript function -->
+<button id="clickButton">Click Me!</button>
+
+<script>
+    // Add event listener for button click
+    document.getElementById("clickButton").addEventListener("click", function() {
+        // Make an AJAX request (fetch API)
+        fetch('/buttonClicked', {
+            method: 'POST',  // Use POST method
+            headers: {
+                'Content-Type': 'application/json',  // Send data as JSON
+            },
+            // No body needed for this simple case, but you can add data here
+        })
+            .then(response => response.json())  // Parse JSON response
+            .then(data => {
+                // Update the message in the <h1> tag with the response
+                document.getElementById("message").innerText = data.message;
+            })
+            .catch(error => {
+                // Handle error
+                console.error('Error:', error);
+                document.getElementById("message").innerText = "An error occurred!";
+            });
+    });
+</script>
+</body>
+</html>

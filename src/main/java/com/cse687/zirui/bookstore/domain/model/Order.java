@@ -1,17 +1,21 @@
 package com.cse687.zirui.bookstore.domain.model;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.Date;
 
-@Entity(name = "order")
+@Entity(name = "book_order")
 public class Order {
     @Id @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
     private Long bookid;
     private float amount;
+    @Temporal(TemporalType.DATE)
     private Date date;
+    @JsonProperty("order_type")
     @Enumerated(EnumType.STRING)
     private OrderType ordertype;
     @ManyToOne
+    @JoinColumn(name = "customer_id")
     private Customer customer;
 
     public Order() {}

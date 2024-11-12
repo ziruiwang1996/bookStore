@@ -1,5 +1,4 @@
 package com.cse687.zirui.bookstore.service.handler.commandHandler;
-
 import com.cse687.zirui.bookstore.domain.command.SellBook;
 import com.cse687.zirui.bookstore.service.BookService;
 import com.cse687.zirui.bookstore.service.CustomerService;
@@ -21,6 +20,8 @@ public class SellBookCmdHandler implements CommandHandler<SellBook> {
     @EventListener
     public void handle(SellBook command) {
         if (customerServ.getCurrentCustomer()==null) {
+            customerServ.setCurrentCustomer(command.getCustomerEmail());
+        } else if ( !customerServ.ifCurrentCustomer(command.getCustomerEmail()) ) {
             customerServ.setCurrentCustomer(command.getCustomerEmail());
         }
         bookServ.sellBook(command.getBookId(), customerServ.getCurrentCustomer().getId());

@@ -2,12 +2,11 @@ package com.cse687.zirui.bookstore.service;
 import com.cse687.zirui.bookstore.adapter.BookRepository;
 import com.cse687.zirui.bookstore.domain.event.*;
 import com.cse687.zirui.bookstore.domain.model.Book;
-import com.cse687.zirui.bookstore.domain.model.BookStatus;
+import com.cse687.zirui.bookstore.domain.model.BookState;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 
 @Service
@@ -25,8 +24,8 @@ public class BookService {
 
     @PostConstruct
     public void init() {
-        List<Book> available = bookRepo.findByStatus(BookStatus.AVAILABLE);
-        List<Book> unavailable = bookRepo.findByStatus(BookStatus.SOLD);
+        List<Book> available = bookRepo.findByState(BookState.AVAILABLE);
+        List<Book> unavailable = bookRepo.findByState(BookState.SOLD);
         availableBooks = new HashMap<>();
         unavailableBooks = new HashMap<>();
         for (Book book : available) {
@@ -39,6 +38,16 @@ public class BookService {
 
     public List<Book> getAvailableBooks() {
         return new ArrayList<>(availableBooks.values());
+    }
+
+    public List<Book> searchBook(String query) {
+        List<Book> books = new ArrayList<>();
+        for (Book book : availableBooks.values()) {
+            if (book.matches(query)) {
+                books.add(book);
+            }
+        }
+        return books;
     }
 
     public Optional<Book> searchByISBN(String isbn) {
@@ -55,18 +64,6 @@ public class BookService {
         return Optional.empty();
     }
 
-    public Book searchById(Long bookId) {
-        Book bk1 = availableBooks.getOrDefault(bookId, null);
-        if (bk1 != null) {
-            return bk1;
-        }
-        Book bk2 = unavailableBooks.getOrDefault(bookId, null);
-        if (bk2 != null) {
-            return bk2;
-        }
-        return null;
-    }
-
     public void buyNewBook(String isbn, Long customerId, float price) {
         messageBus.publishEvent(new NewBookBought(isbn, customerId, price));
     }
@@ -77,16 +74,9 @@ public class BookService {
         Book newBook;
         if (sameIsbnBook.isPresent()) {
             Book book = sameIsbnBook.get();
-            newBook = new Book(
-                    book.getISBN(),
-                    book.getAuthors(),
-                    book.getTitle(),
-                    book.getEdition(),
-                    price,
-                    1
-            );
+            newBook = new Book(book.getISBN(), book.getAuthors(), book.getTitle(), book.getEdition(), book.getPublisher(), price, 1, 1);
         } else {
-            newBook = new Book(isbn, "", "", "", price, 1);
+            newBook = new Book(isbn, "", "", "", "", price, 1, 1);
         }
         bookRepo.save(newBook);
         availableBooks.put(newBook.getId(), newBook);
@@ -105,6 +95,7 @@ public class BookService {
     @Transactional
     public float usedBookBought(Long bookId) {
         Book book = unavailableBooks.get(bookId);
+        book.changeCondition();
         book.depreciation();
         book.flipStatus();
         bookRepo.save(book);
@@ -116,9 +107,11 @@ public class BookService {
     public void sellBook(Long bookId, Long customerId) {
         if (bookId == null || customerId == null) return;
         if (availableBooks.containsKey(bookId)) {
+            System.out.println("BookSold");
             messageBus.publishEvent(new BookSold(bookId, customerId));
         } else {
             messageBus.publishEvent(new OutOfStock(bookId));
+            System.out.println("OutofStock");
         }
     }
 

@@ -1,6 +1,5 @@
 package com.cse687.zirui.bookstore.domain.model;
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity(name = "customer")
@@ -25,7 +24,7 @@ public class Customer {
 
     public float getBalance() { return balance; }
 
-    public List<Order> getTransaction() { return orderHistory; }
+    public List<Order> getOrderHistory() { return orderHistory; }
 
     public void addOrder(Order o) { orderHistory.add(o); }
 }

@@ -31,6 +31,12 @@ public class CustomerService {
         currentCustomer = null;
     }
 
+    public boolean ifCurrentCustomer(String email) {
+        if (currentCustomer == null) { return false; }
+        if (currentCustomer.getEmail().equals(email)) { return true; }
+        return false;
+    }
+
     public Customer getCurrentCustomer() {
         return currentCustomer;
     }

@@ -21,6 +21,8 @@ public class BuyNewBookCmdHandler implements CommandHandler<BuyNewBook> {
     public void handle(BuyNewBook command) {
         if (customerServ.getCurrentCustomer()==null) {
             customerServ.setCurrentCustomer(command.getCustomerEmail());
+        } else if ( !customerServ.ifCurrentCustomer(command.getCustomerEmail()) ) {
+            customerServ.setCurrentCustomer(command.getCustomerEmail());
         }
         bookServ.buyNewBook(command.getIsbn(), customerServ.getCurrentCustomer().getId(), command.getPrice());
     }

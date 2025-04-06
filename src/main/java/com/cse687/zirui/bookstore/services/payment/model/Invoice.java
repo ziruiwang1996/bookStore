@@ -14,7 +14,6 @@ public class Invoice {
     private Long id;
     private Long customerId;
 
-    private List<Book> items = new ArrayList<>();
     private double amount;
     @Temporal(TemporalType.DATE)
     private Date date;
@@ -27,9 +26,8 @@ public class Invoice {
 
     public Invoice() {}
 
-    public Invoice(Long customerId, Long bid, double amt, Date date, int orderType) {
-        this.customer = customer;
-        this.bookid = bid;
+    public Invoice(Long customerid, double amt, Date date, int orderType) {
+        this.customerId = customerid;
         this.amount = amt;
         this.date = date;
         if (orderType == 1) {

@@ -1,5 +1,5 @@
 package com.cse687.zirui.bookstore.services.order.model;
-import com.cse687.zirui.bookstore.services.order.model.depreciateStrategy.DepreciateStrategy;
+import com.cse687.zirui.bookstore.services.order.model.bookstate.*;
 import jakarta.persistence.*;
 import java.util.Objects;
 
@@ -14,41 +14,75 @@ public abstract class Book {
     protected String title;
     protected String publisher;
     protected double price;
-    @Enumerated(EnumType.STRING)
-    protected BookState bookState;
+    protected String stateCode;
+
     @Transient
-    protected DepreciateStrategy depreciateStrategy;
+    protected BookState soldState;
+    @Transient
+    protected BookState availableState;
+    @Transient
+    protected BookState reservedState;
+    @Transient
+    protected BookState state;
 
     public Book() {}
 
-    public Book(String isbn, String authors, String title, String publisher, double price, BookState state) {
+    public Book(String isbn, String authors, String title, String publisher, double price) {
         this.isbn = isbn;
         this.authors = authors;
         this.title = title;
         this.publisher = publisher;
         this.price = price;
-        this.bookState = state;
+        this.soldState = new SoldState(this);
+        this.availableState = new AvailableState(this);
+        this.reservedState = new ReservedState(this);
+        this.state = this.availableState;
+    }
+
+    public void setState(BookState state) {
+        this.state = state;
+        if (state instanceof SoldState) {
+            this.stateCode = "SOLD";
+        } else if (state instanceof AvailableState) {
+            this.stateCode = "AVAILABLE";
+        } else if (state instanceof ReservedState) {
+            this.stateCode = "RESERVED";
+        }
+    }
+
+    public BookState getSoldState() {
+        return soldState;
+    }
+
+    public BookState getAvailableState() {
+        return availableState;
+    }
+
+    public BookState getReservedState() {
+        return reservedState;
+    }
+
+    public void sell(){
+        this.state.sell();
+    }
+
+    public void buy(){
+        this.state.buy();
+    }
+
+    public void reserve(){
+        this.state.reserve();
+    }
+
+    public void cancelReserve(){
+        this.state.cancelReserve();
     }
 
     public Long getId() { return id; }
 
     public String getISBN() { return isbn; }
 
-    public String getAuthors() { return authors; }
-
-    public String getTitle() { return title; }
-
-    public String getPublisher() { return publisher; }
-
     public double getPrice() { return price; }
-
-    public void applyDepreciation() {
-        if (depreciateStrategy != null) {
-            price *= depreciateStrategy.depreciationRate();
-        }
-    }
-
-    public abstract void updateAvailability();
 
     public boolean ifMatches(String query) {
         String[] queries = query.split(",.:;");

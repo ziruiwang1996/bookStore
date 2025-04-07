@@ -1,10 +1,7 @@
 package com.cse687.zirui.bookstore.services.order.model;
-import com.cse687.zirui.bookstore.services.order.model.depreciateStrategy.*;
+import com.cse687.zirui.bookstore.services.order.model.depreciatestrategy.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 
 @Entity
 public class PaperBook extends Book {
@@ -12,11 +9,13 @@ public class PaperBook extends Book {
     @Column(name = "book_condition")
     @Enumerated(EnumType.STRING)
     private BookCondition bookCondition;
+    @Transient
+    private DepreciateStrategy depreciateStrategy;
 
     public PaperBook() {}
 
-    public PaperBook(String isbn, String authors, String title, String publisher, double price, BookState state, BookCondition condition) {
-        super(isbn, authors, title, publisher, price, state);
+    public PaperBook(String isbn, String authors, String title, String publisher, double price, BookCondition condition) {
+        super(isbn, authors, title, publisher, price);
         setCondition(condition);
     }
 
@@ -35,25 +34,19 @@ public class PaperBook extends Book {
         }
     }
 
-    @Override
-    public void updateAvailability() {
-        if (bookState == BookState.AVAILABLE) {
-            bookState = BookState.SOLD_OUT;
-        } else if (bookState == BookState.SOLD_OUT) {
-            bookState = BookState.AVAILABLE;
-        }
+    public void updatePrice() {
+        this.price *= depreciateStrategy.depreciationRate();
     }
 
     @Override
     public String toString() {
-        return String.format("(ID: %d; ISBN: %s; Authors: %s; Title: %s; Edition: %s; Publisher: %s; Condition: %s; State: %s; Price: %.2f)",
+        return String.format("(ID: %d; ISBN: %s; Authors: %s; Title: %s; Publisher: %s; Condition: %s; Price: %.2f)",
                 id,
                 isbn == null ? "" : isbn,
                 authors == null ? "" : authors,
                 title == null ? "" : title,
                 publisher == null ? "" : publisher,
                 bookCondition == null ? "" : bookCondition.toString(),
-                bookState == null ? "" : bookState.toString(),
                 price
         );
     }

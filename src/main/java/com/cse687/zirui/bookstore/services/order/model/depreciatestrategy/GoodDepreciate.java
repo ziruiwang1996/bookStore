@@ -1,4 +1,4 @@
-package com.cse687.zirui.bookstore.services.order.model.depreciateStrategy;
+package com.cse687.zirui.bookstore.services.order.model.depreciatestrategy;
 
 public class GoodDepreciate implements DepreciateStrategy{
     @Override

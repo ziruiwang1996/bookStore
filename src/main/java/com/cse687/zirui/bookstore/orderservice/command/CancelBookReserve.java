@@ -1,6 +1,6 @@
 package com.cse687.zirui.bookstore.orderservice.command;
 
-public record ReserveBook(
+public record CancelBookReserve(
         Long bookId,
         Long userId)
-        implements Command {}
+        implements Command{}

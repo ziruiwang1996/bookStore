@@ -26,15 +26,7 @@ public class OrderController {
     public ResponseEntity<?> sellBook(@RequestBody SellBook cmd) {
         try {
             producer.publishSellBookCommand(cmd);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    @GetMapping("/swap")
-    public ResponseEntity<?> swapBook(@RequestBody SwapBook cmd) {
-        try {
-            producer.punlishSwapBookCommand();
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -43,16 +35,18 @@ public class OrderController {
     @GetMapping("/reserve")
     public ResponseEntity<?> reserveBook(@RequestBody ReserveBook cmd) {
         try {
-            producer.publishReserveBookCommand();
+            producer.publishReserveBookCommand(cmd);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @GetMapping("/cancelreserve")
-    public ResponseEntity<?> cancelReserveBook(@RequestBody CancelReserveBook cmd) {
+    public ResponseEntity<?> cancelReserveBook(@RequestBody CancelBookReserve cmd) {
         try {
-            producer.publishCancelReserveBookCommand();
+            producer.publishCancelReserveBookCommand(cmd);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -61,7 +55,8 @@ public class OrderController {
     @GetMapping("restock")
     public ResponseEntity<?> stockBook(@RequestBody StockBook cmd) {
         try {
-            producer.publishStockBookCommand();
+            producer.publishStockBookCommand(cmd);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

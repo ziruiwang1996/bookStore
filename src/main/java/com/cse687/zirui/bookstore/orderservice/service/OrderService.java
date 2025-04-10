@@ -1,18 +1,14 @@
 package com.cse687.zirui.bookstore.orderservice.service;
-import com.cse687.zirui.bookstore.orderservice.command.BuyBook;
-import com.cse687.zirui.bookstore.orderservice.command.SellBook;
-import com.cse687.zirui.bookstore.orderservice.event.BookBought;
-import com.cse687.zirui.bookstore.orderservice.event.BookSold;
-import com.cse687.zirui.bookstore.orderservice.event.OutOfStock;
+import com.cse687.zirui.bookstore.orderservice.command.*;
+import com.cse687.zirui.bookstore.orderservice.event.*;
 import com.cse687.zirui.bookstore.orderservice.messaging.Producer;
-import com.cse687.zirui.bookstore.orderservice.model.Book;
-import com.cse687.zirui.bookstore.orderservice.model.EBook;
-import com.cse687.zirui.bookstore.orderservice.model.PaperBook;
+import com.cse687.zirui.bookstore.orderservice.model.*;
+import com.cse687.zirui.bookstore.orderservice.model.bookstate.ReservedState;
 import com.cse687.zirui.bookstore.orderservice.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 @Service
 public class OrderService {
@@ -24,11 +20,42 @@ public class OrderService {
         this.bookRepo = bookRepo;
     }
 
+    public void addBookByISBN(String isbn, boolean paperBook, float price, String condition) {
+        Map<String, String> bookInfo = BookFetcher.getBook(isbn);
+        Book book;
+        if (paperBook) {
+            book = new PaperBook(
+                    isbn,
+                    bookInfo.get("authors"),
+                    bookInfo.get("titie"),
+                    bookInfo.get("publisher"),
+                    price,
+                    condition
+            );
+        } else {
+            book = new EBook(
+                    isbn,
+                    bookInfo.get("authors"),
+                    bookInfo.get("titie"),
+                    bookInfo.get("publisher"),
+                    price
+            );
+        }
+        bookRepo.save(book);
+    }
+
     public void buyBook(BuyBook cmd) {
         bookRepo.findById(cmd.bookId()).ifPresent(book -> {
             if (book.getStateCode().equals("AVAILABLE")) {
                 BookBought evt = new BookBought(cmd.bookId(), cmd.userId());
                 producer.publishBookBoughtEvent(evt);
+            } else if (book.getStateCode().equals("RESERVED")) {
+                if (Objects.equals(cmd.userId(), book.getReservedBy())) {
+                    BookBought evt = new BookBought(cmd.bookId(), cmd.userId());
+                    producer.publishBookBoughtEvent(evt);
+                } else {
+                    throw new IllegalStateException("Book RESERVED");
+                }
             } else {
                 throw new IllegalStateException("Book NOT AVAILABLE");
             }
@@ -55,7 +82,7 @@ public class OrderService {
             Book book = bookRepo.findById(cmd.bookId())
                     .orElseThrow(() -> new IllegalArgumentException("Book with ID " + cmd.bookId() + " not found"));
             switch (book.getStateCode()) {
-                case "AVAILABLE", "RESERVED" -> throw new IllegalStateException("Book is already in the database and not sold");
+                case "AVAILABLE", "RESERVED" -> throw new IllegalStateException("Book in inventory");
                 case "SOLD" -> producer.publishBookSoldEvent(evt);
                 default -> throw new IllegalStateException("Unexpected book state: " + book.getStateCode());
             }
@@ -68,36 +95,64 @@ public class OrderService {
 
     public void bookSold(BookSold evt) {
         if (evt.bookId() != null) {
-            bookRepo.findById(evt.bookId()).ifPresent(book -> {
-                book.sell();
-                if (book instanceof PaperBook pb) {
-                    pb.setCondition(evt.condition());
-                    pb.updatePrice();
-                }
-                bookRepo.save(book);
-            });
-        } else if (evt.isbn() != null) {
-            Map<String, String> bookInfo = BookFetcher.getBook(evt.isbn());
-            Book book;
-            if (evt.paperBook()) {
-                book = new PaperBook(
-                        evt.isbn(),
-                        bookInfo.get("authors"),
-                        bookInfo.get("titie"),
-                        bookInfo.get("publisher"),
-                        evt.price(),
-                        evt.condition()
-                );
-            } else {
-                book = new EBook(
-                        evt.isbn(),
-                        bookInfo.get("authors"),
-                        bookInfo.get("titie"),
-                        bookInfo.get("publisher"),
-                        evt.price()
-                );
+            Book book = bookRepo.findById(evt.bookId())
+                    .orElseThrow(() -> new IllegalArgumentException("Book with ID " + evt.bookId() + " not found"));
+            book.sell();
+            if (book instanceof PaperBook pb) {
+                pb.setCondition(evt.condition());
+                pb.updatePrice();
             }
             bookRepo.save(book);
+        } else if (evt.isbn() != null) {
+            addBookByISBN(evt.isbn(), evt.paperBook(), evt.price(), evt.condition());
+        } else {
+            throw new IllegalArgumentException("Must provide either book ID or ISBN");
+        }
+    }
+
+    public void reserveBook(ReserveBook cmd) {
+        Book book = bookRepo.findById(cmd.bookId())
+                .orElseThrow(() -> new IllegalArgumentException("Book with ID " + cmd.bookId() + " not found"));
+        if (book.getStateCode().equals("AVAILABLE")) {
+            BookReserved evt = new BookReserved(cmd.bookId(), cmd.userId());
+            producer.publishBookReservedEvent(evt);
+        } else {
+            throw new IllegalStateException("Book NOT AVAILABLE or RESERVED");
+        }
+    }
+
+    public void bookReserved(BookBought evt) {
+        Book book = bookRepo.findById(evt.bookId())
+                .orElseThrow(() -> new IllegalArgumentException("Book with ID " + evt.bookId() + " not found"));
+        book.reserve(evt.userId());
+        bookRepo.save(book);
+    }
+
+    public void cancelReserve(CancelBookReserve cmd) {
+        Book book = bookRepo.findById(cmd.bookId())
+                .orElseThrow(() -> new IllegalArgumentException("Book with ID " + cmd.bookId() + " not found"));
+        if (book.getStateCode().equals("RESERVED")) {
+            if (Objects.equals(cmd.userId(), book.getReservedBy())) {
+                BookReserveCancelled evt = new BookReserveCancelled(cmd.bookId(), cmd.userId());
+                producer.publishBookReserveCancelledEvent(evt);
+            } else {
+                throw new IllegalStateException("Book RESERVED by another user");
+            }
+        } else {
+            throw new IllegalStateException("Book NOT RESERVED");
+        }
+    }
+
+    public void reserveCancelled(Long bookId) {
+        Book book = bookRepo.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("Book with ID " + bookId + " not found"));
+        book.cancelReserve();
+        bookRepo.save(book);
+    }
+
+    public void stockBook(StockBook cmd) {
+        if (cmd.isbn() != null) {
+            addBookByISBN(cmd.isbn(), cmd.paperBook(), cmd.price(), cmd.condition());
         }
     }
 }

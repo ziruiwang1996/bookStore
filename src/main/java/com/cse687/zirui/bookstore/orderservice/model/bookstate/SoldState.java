@@ -9,22 +9,28 @@ public class SoldState implements BookState {
     }
 
     @Override
-    public void sell() {
-        throw new UnsupportedOperationException("Book already sold");
+    public void userBuy() {
+        throw new IllegalStateException("Book sold");
     }
 
     @Override
-    public void buy() {
+    public void userSell() {
         this.book.setState(book.getAvailableState());
     }
 
     @Override
     public void reserve() {
-        throw new UnsupportedOperationException("Book is sold");
+        throw new IllegalStateException("Book sold");
     }
 
     @Override
     public void cancelReserve() {
-        throw new UnsupportedOperationException("Book is sold");
+        throw new IllegalStateException("Book sold");
+    }
+
+    @Override
+    public String getCode() {
+        return "SOLD";
     }
 }
+

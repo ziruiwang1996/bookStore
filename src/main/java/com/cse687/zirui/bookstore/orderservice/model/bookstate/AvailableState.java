@@ -9,22 +9,19 @@ public class AvailableState implements BookState {
     }
 
     @Override
-    public void sell() {
-        this.book.setState(book.getSoldState());
-    }
+    public void userSell() { throw new IllegalStateException("Book in inventory"); }
 
     @Override
-    public void buy() {
-        throw new UnsupportedOperationException("Book already available");
-    }
+    public void userBuy() { this.book.setState(book.getSoldState()); }
 
     @Override
-    public void reserve() {
-        this.book.setState(book.getReservedState());
-    }
+    public void reserve() { this.book.setState(book.getReservedState()); }
 
     @Override
-    public void cancelReserve() {
-        throw new UnsupportedOperationException("Cannot cancel reservation on available book");
+    public void cancelReserve() { throw new IllegalStateException("No reservation to cancel"); }
+
+    @Override
+    public String getCode() {
+        return "AVAILABLE";
     }
 }

@@ -1,7 +1,7 @@
 package com.cse687.zirui.bookstore.orderservice.messaging;
-import com.cse687.zirui.bookstore.orderservice.command.BuyBook;
-import com.cse687.zirui.bookstore.orderservice.command.SellBook;
+import com.cse687.zirui.bookstore.orderservice.command.*;
 import com.cse687.zirui.bookstore.orderservice.event.BookBought;
+import com.cse687.zirui.bookstore.orderservice.event.BookReserveCancelled;
 import com.cse687.zirui.bookstore.orderservice.event.BookSold;
 import com.cse687.zirui.bookstore.orderservice.service.OrderService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,28 +17,40 @@ public class Consumer {
         this.orderServ = orderServ;
     }
 
-    @RabbitListener(queues = "orderCmdQueue")
+    @RabbitListener(queues = "")
     public void handleBuyBookCommand(BuyBook cmd) {
         orderServ.buyBook(cmd);
     }
 
-    @RabbitListener(queues = "orderEvtQueue")
+    @RabbitListener(queues = "")
     public void handleBookBoughtEvent(BookBought event) {
         orderServ.bookBought(event.bookId());
     }
 
-//    @RabbitListener(queues = "orderEvtQueue")
-//    public void handleOutOfStockEvent(OutOfStock event) {
-//        //handled out of order situation
-//    }
-
-    @RabbitListener(queues = "orderCmdQueue")
+    @RabbitListener(queues = "")
     public void handleSellBookCommand(SellBook cmd) {
         orderServ.sellBook(cmd);
     }
 
     @RabbitListener(queues = "")
-    public void handleBookSoldEvent(BookSold event) {
-        orderServ.bookBought(event.bookId());
+    public void handleBookSoldEvent(BookSold evt) {
+        orderServ.bookSold(evt);
     }
+
+    @RabbitListener(queues = "")
+    public void handleReserveBookCommand(ReserveBook cmd) { orderServ.reserveBook(cmd);}
+
+    @RabbitListener(queues = "")
+    public void handleBookReservedEvent(BookBought evt) {orderServ.bookReserved(evt); }
+
+    @RabbitListener(queues = "")
+    public void handleCancelReserveBookCommand(CancelBookReserve cmd) {orderServ.cancelReserve(cmd); }
+
+    @RabbitListener(queues = "")
+    public void handleBookReserveCancelledEvent(BookReserveCancelled evt) {orderServ.reserveCancelled(evt.bookId()); }
+
+    @RabbitListener(queues = "")
+    public void handleStockBookCommand(StockBook cmd) {orderServ.stockBook(cmd);}
 }
+
+

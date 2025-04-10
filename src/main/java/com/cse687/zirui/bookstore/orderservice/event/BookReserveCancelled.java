@@ -1,6 +1,6 @@
 package com.cse687.zirui.bookstore.orderservice.event;
 
-public record BookReserved(
+public record BookReserveCancelled(
         Long bookId,
-        Long customerId)
+        Long userId)
         implements Event {}

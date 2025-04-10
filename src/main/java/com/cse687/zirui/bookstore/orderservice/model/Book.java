@@ -15,6 +15,7 @@ public abstract class Book {
     protected String publisher;
     protected double price;
     protected String stateCode;
+    protected Long reservedBy;
 
     @Transient
     protected BookState soldState;
@@ -33,21 +34,28 @@ public abstract class Book {
         this.title = title;
         this.publisher = publisher;
         this.price = price;
+        initStates();
+    }
+
+    private void initStates() {
         this.soldState = new SoldState(this);
         this.availableState = new AvailableState(this);
         this.reservedState = new ReservedState(this);
-        this.state = this.availableState;
+        switch (stateCode) {
+            case "SOLD": this.state = this.soldState; break;
+            case "RESERVED": this.state = this.reservedState; break;
+            default: this.state = this.availableState;
+        }
+    }
+
+    @PostLoad
+    public void postLoadInit() {
+        initStates();
     }
 
     public void setState(BookState state) {
         this.state = state;
-        if (state instanceof SoldState) {
-            this.stateCode = "SOLD";
-        } else if (state instanceof AvailableState) {
-            this.stateCode = "AVAILABLE";
-        } else if (state instanceof ReservedState) {
-            this.stateCode = "RESERVED";
-        }
+        this.stateCode = state.getCode();
     }
 
     public BookState getSoldState() {
@@ -63,19 +71,21 @@ public abstract class Book {
     }
 
     public void sell(){
-        this.state.sell();
+        this.state.userSell();
     }
 
     public void buy(){
-        this.state.buy();
+        this.state.userBuy();
     }
 
-    public void reserve(){
+    public void reserve(Long userId){
         this.state.reserve();
+        this.reservedBy = userId;
     }
 
     public void cancelReserve(){
         this.state.cancelReserve();
+        this.reservedBy = null;
     }
 
     public Long getId() { return id; }
@@ -85,6 +95,8 @@ public abstract class Book {
     public double getPrice() { return price; }
 
     public String getStateCode() { return stateCode; }
+
+    public Long getReservedBy() { return reservedBy; }
 
     public boolean ifMatches(String query) {
         String[] queries = query.split(",.:;");

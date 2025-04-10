@@ -1,6 +1,8 @@
 package com.cse687.zirui.bookstore.orderservice.model.bookstate;
 import com.cse687.zirui.bookstore.orderservice.model.Book;
 
+import java.util.Objects;
+
 public class ReservedState implements BookState {
     private Book book;
 
@@ -9,22 +11,21 @@ public class ReservedState implements BookState {
     }
 
     @Override
-    public void sell() {
-        this.book.setState(book.getSoldState());
-    }
+    public void userSell() { throw new IllegalStateException("Book in inventory"); }
 
     @Override
-    public void buy() {
-        throw new UnsupportedOperationException("Book already available and is reserved");
-    }
+    public void userBuy() { this.book.setState(book.getSoldState()); }
 
     @Override
     public void reserve() {
-        throw new UnsupportedOperationException("Book already reserved");
+        throw new IllegalStateException("Book already reserved");
     }
 
     @Override
-    public void cancelReserve() {
-        this.book.setState(book.getAvailableState());
+    public void cancelReserve() { this.book.setState(book.getAvailableState()); }
+
+    @Override
+    public String getCode() {
+        return "RESERVED";
     }
 }

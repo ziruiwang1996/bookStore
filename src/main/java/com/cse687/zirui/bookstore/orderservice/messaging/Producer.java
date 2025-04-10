@@ -1,9 +1,6 @@
 package com.cse687.zirui.bookstore.orderservice.messaging;
-
-import com.cse687.zirui.bookstore.orderservice.command.BuyBook;
-import com.cse687.zirui.bookstore.orderservice.command.SellBook;
-import com.cse687.zirui.bookstore.orderservice.event.BookBought;
-import com.cse687.zirui.bookstore.orderservice.event.BookSold;
+import com.cse687.zirui.bookstore.orderservice.command.*;
+import com.cse687.zirui.bookstore.orderservice.event.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -33,5 +30,25 @@ public class Producer {
 
     public void publishBookSoldEvent(BookSold evt) {
         rabbitTemplate.convertAndSend("orderExchange","book.sold", evt);
+    }
+
+    public void publishReserveBookCommand(ReserveBook cmd) {
+        rabbitTemplate.convertAndSend("orderExchange","order.reserved", cmd);
+    }
+
+    public void publishBookReservedEvent(BookReserved evt) {
+        rabbitTemplate.convertAndSend("orderExchange","book.reserved", evt);
+    }
+
+    public void publishCancelReserveBookCommand(CancelBookReserve evt) {
+        rabbitTemplate.convertAndSend("orderExchange","book.reserved", evt);
+    }
+
+    public void publishBookReserveCancelledEvent(BookReserveCancelled evt) {
+        rabbitTemplate.convertAndSend("orderExchange","book.reserved", evt);
+    }
+
+    public void publishStockBookCommand(StockBook cmd) {
+        rabbitTemplate.convertAndSend("orderExchange","book.stock", cmd);
     }
 }

@@ -44,6 +44,8 @@ public class PaperBook extends Book {
             depreciationStrategy = DepreciationCondition.GOOD;
         } else if (bookCondition == BookCondition.LIKE_NEW) {
             depreciationStrategy = DepreciationCondition.LIKE_NEW;
+        } else {
+            depreciationStrategy = null;
         }
     }
 

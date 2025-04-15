@@ -1,4 +1,4 @@
-package com.cse687.zirui.bookstore.auth.controller;
+package com.cse687.zirui.bookstore.auth.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-    private final String SECRET_KEY = "mysecretkey1234567890";
+    private final String SECRET_KEY = System.getenv("JWT_SECRET_KEY");
 
     public String generateToken(Long userId, String role) {
         return Jwts.builder()
@@ -22,7 +22,7 @@ public class JwtService {
 
     public static Long extractUserId(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey("mysecretkey1234567890".getBytes())
+                .setSigningKey(SECRET_KEY.getBytes())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

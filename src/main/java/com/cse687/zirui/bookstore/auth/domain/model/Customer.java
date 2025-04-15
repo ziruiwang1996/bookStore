@@ -3,7 +3,7 @@ import jakarta.persistence.*;
 
 @Entity(name = "customer")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "customer_type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "category", discriminatorType = DiscriminatorType.STRING)
 public abstract class Customer {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id;

@@ -11,10 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/order")
 public class OrderController {
-    @Autowired
-    private OrderProducer producer;
+    private final OrderProducer producer;
 
-    @GetMapping("/buy")
+    @Autowired
+    public OrderController(OrderProducer producer) {
+        this.producer = producer;
+    }
+
+    @PostMapping("/buy")
     public ResponseEntity<?> buyBook(@RequestBody BuyBook cmd) {
         try {
             producer.publishBuyBookCmd(cmd);
@@ -24,7 +28,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/sell")
+    @PostMapping("/sell")
     public ResponseEntity<?> sellBook(@RequestBody SellBook cmd) {
         try {
             producer.publishSellBookCmd(cmd);
@@ -34,7 +38,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/reserve")
+    @PostMapping("/reserve")
     public ResponseEntity<?> reserveBook(@RequestBody ReserveBook cmd) {
         try {
             producer.publishReserveBookCmd(cmd);
@@ -44,7 +48,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/cancelreserve")
+    @PostMapping("/cancelreserve")
     public ResponseEntity<?> cancelReserveBook(@RequestBody CancelBookReserve cmd) {
         try {
             producer.publishCancelBookReserveCmd(cmd);
@@ -54,7 +58,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("restock")
+    @PostMapping("restock")
     public ResponseEntity<?> stockBook(@RequestBody StockBook cmd) {
         try {
             producer.publishStockBookCmd(cmd);

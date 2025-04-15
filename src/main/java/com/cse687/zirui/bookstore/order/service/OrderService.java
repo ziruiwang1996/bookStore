@@ -14,11 +14,12 @@ import java.util.Objects;
 @Service
 public class OrderService {
     private final BookRepository bookRepo;
-    private OrderProducer producer;
+    private final OrderProducer producer;
 
     @Autowired
-    public OrderService(BookRepository bookRepo) {
+    public OrderService(BookRepository bookRepo, OrderProducer producer) {
         this.bookRepo = bookRepo;
+        this.producer = producer;
     }
 
     public void addBookByISBN(String isbn, boolean paperBook, float price, String condition) {
@@ -28,7 +29,7 @@ public class OrderService {
             book = new PaperBook(
                     isbn,
                     bookInfo.get("authors"),
-                    bookInfo.get("titie"),
+                    bookInfo.get("title"),
                     bookInfo.get("publisher"),
                     price,
                     condition
@@ -37,7 +38,7 @@ public class OrderService {
             book = new EBook(
                     isbn,
                     bookInfo.get("authors"),
-                    bookInfo.get("titie"),
+                    bookInfo.get("title"),
                     bookInfo.get("publisher"),
                     price
             );

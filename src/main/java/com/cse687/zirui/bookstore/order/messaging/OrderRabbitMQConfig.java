@@ -16,7 +16,18 @@ public class OrderRabbitMQConfig {
         return new DirectExchange(EXCHANGE);
     }
 
-    // === QUEUES & BINDINGS ===
+    @Bean
+    public MessageConverter messageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(messageConverter());
+        return rabbitTemplate;
+    }
+
     @Bean
     public Queue buyBookQueue() {
         return new Queue(RoutingKey.BUY_BOOK.getKey(), true);
@@ -103,17 +114,5 @@ public class OrderRabbitMQConfig {
     @Bean
     public Binding bindReserveCancelled(Queue reserveCancelledQueue, DirectExchange orderExchange) {
         return BindingBuilder.bind(reserveCancelledQueue).to(orderExchange).with(RoutingKey.BOOK_RESERVE_CANCELLED.getKey());
-    }
-
-    @Bean
-    public MessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
-    public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory) {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(messageConverter());
-        return rabbitTemplate;
     }
 }

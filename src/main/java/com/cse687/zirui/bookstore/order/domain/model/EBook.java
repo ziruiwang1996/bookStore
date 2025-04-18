@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 public class EBook extends Book {
     public EBook() {}
 
-    public EBook(String isbn, String authors, String title, String publisher, double price) {
+    public EBook(String isbn, String authors, String title, String publisher, float price) {
         super(isbn, authors, title, publisher, price);
     }
 

@@ -3,14 +3,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Service;
 import java.util.Date;
 
-@Service
 public class JwtService {
-    private final String SECRET_KEY = System.getenv("JWT_SECRET_KEY");
+    private static final String SECRET_KEY = System.getenv("JWT_SECRET_KEY");
 
-    public String generateToken(Long userId, String role) {
+    public static String generateToken(Long userId, String role) {
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("role", role)

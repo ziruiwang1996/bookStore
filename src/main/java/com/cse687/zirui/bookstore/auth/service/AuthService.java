@@ -7,7 +7,6 @@ import com.cse687.zirui.bookstore.auth.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.lang.reflect.Field;
 import java.util.Optional;
 
@@ -15,13 +14,11 @@ import java.util.Optional;
 public class AuthService {
     private final CustomerRepository customerRepo;
     private final AuthProducer producer;
-    private final JwtService jwtService;
 
     @Autowired
-    public AuthService(CustomerRepository customerRepo, AuthProducer producer, JwtService jwtService) {
+    public AuthService(CustomerRepository customerRepo, AuthProducer producer){
         this.customerRepo = customerRepo;
         this.producer = producer;
-        this.jwtService = jwtService;
     }
 
     public String logIn(LogIn cmd) {
@@ -30,31 +27,32 @@ public class AuthService {
             Guest guest = new Guest(cmd.email());
             customerRepo.save(guest);
             producer.publishLoggedInEvt(new LoggedIn(guest.getId()));
-            return jwtService.generateToken(guest.getId(), "GUEST");
+            return JwtService.generateToken(guest.getId(), "GUEST");
         }
         Customer customer = customerOpt.get();
         if (customer instanceof Member member) {
             if (cmd.password() != null && cmd.password().equals(member.getPassword())) {
                 producer.publishLoggedInEvt(new LoggedIn(member.getId()));
-                return jwtService.generateToken(member.getId(), "MEMBER");
+                return JwtService.generateToken(member.getId(), "MEMBER");
             } else {
                 throw new IllegalArgumentException("Invalid credentials");
             }
         } else if (customer instanceof Guest guest) {
             producer.publishLoggedInEvt(new LoggedIn(guest.getId()));
-            return jwtService.generateToken(guest.getId(), "GUEST");
+            return JwtService.generateToken(guest.getId(), "GUEST");
         }
         throw new IllegalStateException("Unexpected user type");
     }
 
     public void loggedIn(LoggedIn evt) {
-        System.out.println("User " + evt.userId() + ": logged out");
-        // placeholder for future features
+        System.out.println("User " + evt.userId() + ": logged in");
+        producer.publishCreateCartCmd(
+                new CreateCart(evt.userId())
+        );
     }
 
     public void logOut(LogOut cmd) {
         producer.publishLoggedOutEvt(new LoggedOut(cmd.userId()));
-        // placeholder for future features
     }
 
     public void loggedOut(LoggedOut evt) {
@@ -109,5 +107,16 @@ public class AuthService {
 
     public void deleted(AccountDeleted evt) {
         customerRepo.deleteById(evt.userId());
+        producer.publishDeleteCartCmd(new DeleteCart(evt.userId()));
+    }
+
+    public void addCreditIfMember(AddCreditIfMember cmd) {
+        customerRepo.findById(cmd.userId()).ifPresent(
+                customer -> {
+                    if (customer instanceof Member member) {
+                        member.addCredit(cmd.amt());
+                    }
+                }
+        );
     }
 }

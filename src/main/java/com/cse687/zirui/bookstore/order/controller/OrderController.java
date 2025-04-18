@@ -18,16 +18,6 @@ public class OrderController {
         this.producer = producer;
     }
 
-    @PostMapping("/buy")
-    public ResponseEntity<?> buyBook(@RequestBody BuyBook cmd) {
-        try {
-            producer.publishBuyBookCmd(cmd);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
     @PostMapping("/sell")
     public ResponseEntity<?> sellBook(@RequestBody SellBook cmd) {
         try {

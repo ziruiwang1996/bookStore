@@ -36,7 +36,7 @@ public class AuthController {
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
-            Long userId = JwtService.extractUserId(token); // assumes JwtService has static extractUserId()
+            Long userId = JwtService.extractUserId(token);
             authServ.logOut(new LogOut(userId));
             return ResponseEntity.ok().build();
         } catch (Exception e) {

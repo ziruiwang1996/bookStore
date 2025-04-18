@@ -1,4 +1,5 @@
 package com.cse687.zirui.bookstore.order.messaging;
+import com.cse687.zirui.bookstore.shared.RoutingKey;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -114,5 +115,15 @@ public class OrderRabbitMQConfig {
     @Bean
     public Binding bindReserveCancelled(Queue reserveCancelledQueue, DirectExchange orderExchange) {
         return BindingBuilder.bind(reserveCancelledQueue).to(orderExchange).with(RoutingKey.BOOK_RESERVE_CANCELLED.getKey());
+    }
+
+    @Bean
+    public Queue placeOrderQueue() {
+        return new Queue("order.cmd.placeOrder", true);
+    }
+
+    @Bean
+    public Binding bindPlaceOrder(Queue placeOrderQueue, DirectExchange orderExchange) {
+        return BindingBuilder.bind(placeOrderQueue).to(orderExchange).with("order.cmd.placeOrder");
     }
 }

@@ -1,6 +1,7 @@
 package com.cse687.zirui.bookstore.auth.messaging;
 import com.cse687.zirui.bookstore.auth.domain.command.*;
 import com.cse687.zirui.bookstore.auth.domain.event.*;
+import com.cse687.zirui.bookstore.shared.RoutingKey;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -35,5 +36,13 @@ public class AuthProducer {
 
     public void publishAccountDeletedEvt(AccountDeleted evt){
         rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.ACCOUNT_DELETED.getKey(), evt);
+    }
+
+    public void publishCreateCartCmd(CreateCart cmd) {
+        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.CREATE_CART.getKey(), cmd);
+    }
+
+    public void publishDeleteCartCmd(DeleteCart cmd) {
+        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.CREATE_CART.getKey(), cmd);
     }
 }

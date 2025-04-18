@@ -1,13 +1,12 @@
 package com.cse687.zirui.bookstore.order.service;
 import com.cse687.zirui.bookstore.order.domain.command.*;
 import com.cse687.zirui.bookstore.order.domain.event.*;
-import com.cse687.zirui.bookstore.order.domain.model.Book;
-import com.cse687.zirui.bookstore.order.domain.model.EBook;
-import com.cse687.zirui.bookstore.order.domain.model.PaperBook;
+import com.cse687.zirui.bookstore.order.domain.model.*;
 import com.cse687.zirui.bookstore.order.messaging.OrderProducer;
 import com.cse687.zirui.bookstore.order.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -48,24 +47,19 @@ public class OrderService {
 
     public void buyBook(BuyBook cmd) {
         bookRepo.findById(cmd.bookId()).ifPresent(book -> {
-            if (book.getStateCode().equals("AVAILABLE")) {
-                BookBought evt = new BookBought(cmd.bookId(), cmd.userId());
-                producer.publishBookBoughtEvt(evt);
-            } else if (book.getStateCode().equals("RESERVED")) {
-                if (Objects.equals(cmd.userId(), book.getReservedBy())) {
-                    BookBought evt = new BookBought(cmd.bookId(), cmd.userId());
-                    producer.publishBookBoughtEvt(evt);
-                } else {
+            if (book.getStateCode().equals("SOLD")) {
+                throw new IllegalStateException("Book NOT AVAILABLE");
+            }
+            if (book.getStateCode().equals("RESERVED")) {
+                if (!Objects.equals(cmd.userId(), book.getReservedBy())) {
                     throw new IllegalStateException("Book RESERVED");
                 }
-            } else {
-                throw new IllegalStateException("Book NOT AVAILABLE");
             }
         });
     }
 
-    public void bookBought(Long bookId) {
-        bookRepo.findById(bookId).ifPresent(book -> {
+    public void bookBought(BookBought evt) {
+        bookRepo.findById(evt.bookId()).ifPresent(book -> {
             book.buy();
             bookRepo.save(book);
         });
@@ -96,6 +90,10 @@ public class OrderService {
     }
 
     public void bookSold(BookSold evt) {
+        float actualPrice = evt.price();
+        if (evt.bookId() == null && evt.isbn() == null) {
+            throw new IllegalArgumentException("Must provide either book ID or ISBN");
+        }
         if (evt.bookId() != null) {
             Book book = bookRepo.findById(evt.bookId())
                     .orElseThrow(() -> new IllegalArgumentException("Book with ID " + evt.bookId() + " not found"));
@@ -103,12 +101,15 @@ public class OrderService {
             if (book instanceof PaperBook pb) {
                 pb.setCondition(evt.condition());
                 pb.updatePrice();
+                actualPrice = pb.getPrice();
             }
             bookRepo.save(book);
-        } else if (evt.isbn() != null) {
+        if (evt.isbn() != null) {
             addBookByISBN(evt.isbn(), evt.paperBook(), evt.price(), evt.condition());
-        } else {
-            throw new IllegalArgumentException("Must provide either book ID or ISBN");
+        }
+        producer.publishAddCreditIfMemberCmd(
+                new AddCreditIfMember(evt.userId(), actualPrice)
+        );
         }
     }
 
@@ -128,6 +129,7 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Book with ID " + evt.bookId() + " not found"));
         book.reserve(evt.userId());
         bookRepo.save(book);
+        producer.publishAddItemCmd(new AddItem(evt.bookId(), evt.userId()));
     }
 
     public void cancelReserve(CancelBookReserve cmd) {
@@ -145,16 +147,54 @@ public class OrderService {
         }
     }
 
-    public void reserveCancelled(Long bookId) {
-        Book book = bookRepo.findById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("Book with ID " + bookId + " not found"));
+    public void reserveCancelled(BookReserveCancelled evt) {
+        Book book = bookRepo.findById(evt.bookId())
+                .orElseThrow(() -> new IllegalArgumentException("Book with ID " + evt.bookId() + " not found"));
         book.cancelReserve();
         bookRepo.save(book);
+        producer.publishRemoveItemCmd(new RemoveItem(evt.bookId(), evt.userId()));
     }
 
     public void stockBook(StockBook cmd) {
         if (cmd.isbn() != null) {
             addBookByISBN(cmd.isbn(), cmd.paperBook(), cmd.price(), cmd.condition());
         }
+    }
+
+
+
+    public void orderPlaced(OrderPlaced evt) {
+        Long userId = evt.userId();
+        List<Long> books = evt.items();
+        float total = 0;
+        for (Long bookId : books) {
+            try {
+                BuyBook cmd = new BuyBook(bookId, userId);
+                producer.publishBuyBookCmd(cmd);
+                Book bk = bookRepo.findById(bookId).get();
+                total += bk.getPrice();
+            } catch (Exception e) {
+                System.out.println("Book " + bookId + " purchase  failed: " + e.getMessage());
+                books.remove(bookId);
+            }
+        }
+        Long orderId = Objects.hash(books) + userId;
+        producer.publishProcessPaymentCmd(
+                new ProcessPayment(orderId, userId, total, books)
+        );
+    }
+
+
+    public void paymentSucceeded(PaymentSucceeded evt) {
+        for (Long bookId : evt.items()) {
+            producer.publishBookBoughtEvt(
+                    new BookBought(bookId, evt.userId())
+            );
+        }
+        System.out.println("Order"+ evt.orderId() + "Payment Succeeded");
+    }
+
+    public void paymentFailed(PaymentFailed evt) {
+        System.out.println("Order"+ evt.orderId() + " Payment Failed: " + evt.message());
     }
 }

@@ -1,4 +1,5 @@
 package com.cse687.zirui.bookstore.auth.messaging;
+import com.cse687.zirui.bookstore.shared.RoutingKey;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

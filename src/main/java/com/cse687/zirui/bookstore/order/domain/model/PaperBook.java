@@ -12,7 +12,7 @@ public class PaperBook extends Book {
 
     public PaperBook() {}
 
-    public PaperBook(String isbn, String authors, String title, String publisher, double price, String condition) {
+    public PaperBook(String isbn, String authors, String title, String publisher, float price, String condition) {
         super(isbn, authors, title, publisher, price);
         setCondition(condition);
     }

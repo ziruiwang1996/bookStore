@@ -31,7 +31,7 @@ public class OrderConsumer {
 
     @RabbitListener(queues = BOOK_BOUGHT)
     public void handleBookBoughtEvt(BookBought evt) {
-        orderServ.bookBought(evt.bookId());
+        orderServ.bookBought(evt);
     }
 
     @RabbitListener(queues = SELL_BOOK)
@@ -54,10 +54,26 @@ public class OrderConsumer {
     public void handleCancelBookReserveCmd(CancelBookReserve cmd) {orderServ.cancelReserve(cmd); }
 
     @RabbitListener(queues = BOOK_RESERVE_CANCELLED)
-    public void handleBookReserveCancelledEvt(BookReserveCancelled evt) {orderServ.reserveCancelled(evt.bookId()); }
+    public void handleBookReserveCancelledEvt(BookReserveCancelled evt) {orderServ.reserveCancelled(evt); }
 
     @RabbitListener(queues = STOCK_BOOK)
     public void handleStockBookCmd(StockBook cmd) {orderServ.stockBook(cmd);}
+
+    @RabbitListener(queues = "order.cmd.placeOrder")
+    public void handlePlaceOrderCmd(OrderPlaced evt) {
+        orderServ.orderPlaced(evt);
+    }
+
+    @RabbitListener(queues = "order.cmd.placeOrder")
+    public void handlePaymentSucceededEvt(PaymentSucceeded evt) {
+        orderServ.paymentSucceeded(evt);
+    }
+
+    @RabbitListener(queues = "order.cmd.placeOrder")
+    public void handlePaymentFailedEvt(PaymentFailed evt) {
+        orderServ.paymentFailed(evt);
+    }
+
 }
 
 

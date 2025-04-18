@@ -50,14 +50,8 @@ public class AuthConsumer {
         authServ.deleted(evt);
     }
 
-
-//    @RabbitListener(queues = "orderEvtQueue")
-//    public void handleBookBoughtEvent(BookBought event) {
-//        orderServ.bookBought(event.bookId());
-//    }
-
-    //    @RabbitListener(queues = "orderEvtQueue")
-//    public void handleBookBoughtEvent(BookBought event) {
-//        orderServ.bookBought(event.bookId());
-//    }
+    @RabbitListener(queues = ACCOUNT_DELETED)
+    public void handleAddCreditIfMemberCmd(AddCreditIfMember cmd){
+        authServ.addCreditIfMember(cmd);
+    }
 }

@@ -16,7 +16,7 @@ public abstract class Book {
     protected String authors;
     protected String title;
     protected String publisher;
-    protected double price;
+    protected float price;
     protected String stateCode;
     protected Long reservedBy;
 
@@ -31,7 +31,7 @@ public abstract class Book {
 
     public Book() {}
 
-    public Book(String isbn, String authors, String title, String publisher, double price) {
+    public Book(String isbn, String authors, String title, String publisher, float price) {
         this.isbn = isbn;
         this.authors = authors;
         this.title = title;
@@ -95,7 +95,7 @@ public abstract class Book {
 
     public String getISBN() { return isbn; }
 
-    public double getPrice() { return price; }
+    public float getPrice() { return price; }
 
     public String getStateCode() { return stateCode; }
 

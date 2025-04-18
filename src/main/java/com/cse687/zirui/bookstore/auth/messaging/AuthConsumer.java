@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthConsumer {
     private final AuthService authServ;
-
-    private static final String REGISTER_ACCOUNT = "auth.cmd.register";
-    private static final String DELETE_ACCOUNT = "auth.cmd.delete";
-    private static final String LOGGED_IN = "auth.evt.loggedIn";
-    private static final String LOGGED_OUT = "auth.evt.loggedOut";
-    private static final String ACCOUNT_REGISTERED = "auth.evt.registered";
-    private static final String ACCOUNT_DELETED = "auth.evt.deleted";
+    private static final String REGISTER_ACCOUNT = "auth.queue.registerAccount";
+    private static final String DELETE_ACCOUNT = "auth.queue.deleteAccount";
+    private static final String LOGGED_IN = "auth.queue.loggedIn";
+    private static final String LOGGED_OUT = "auth.queue.loggedOut";
+    private static final String ACCOUNT_REGISTERED = "auth.queue.accountRegistered";
+    private static final String ACCOUNT_DELETED = "auth.queue.accountDeleted";
+    private static final String ADD_CREDIT = "order.queue.addCredit"; // from order service
 
     @Autowired
     public AuthConsumer(AuthService authServ) {
@@ -38,7 +38,9 @@ public class AuthConsumer {
     }
 
     @RabbitListener(queues = ACCOUNT_REGISTERED)
-    public void handleAccountRegisteredEvt(AccountRegistered evt) { authServ.registered(evt);}
+    public void handleAccountRegisteredEvt(AccountRegistered evt) {
+        authServ.registered(evt);
+    }
 
     @RabbitListener(queues = DELETE_ACCOUNT)
     public void handleDeleteAccountCmd(DeleteAccount cmd) {
@@ -50,7 +52,7 @@ public class AuthConsumer {
         authServ.deleted(evt);
     }
 
-    @RabbitListener(queues = ACCOUNT_DELETED)
+    @RabbitListener(queues = ADD_CREDIT)
     public void handleAddCreditIfMemberCmd(AddCreditIfMember cmd){
         authServ.addCreditIfMember(cmd);
     }

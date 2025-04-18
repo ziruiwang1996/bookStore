@@ -8,18 +8,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class PaymentConsumer {
     private final PaymentService paymentServ;
+    public static final String PROCESS_PAYMENT = "order.queue.processPayment"; //from order service
+    public static final String GENERATE_INVOICE = "payment.queue.generateInvoice";
 
     @Autowired
     public PaymentConsumer(PaymentService paymentService) {
         this.paymentServ = paymentService;
     }
 
-    @RabbitListener(queues = "payment.process")
+    @RabbitListener(queues = PROCESS_PAYMENT)
     public void handleProcessPaymentCmd(ProcessPayment cmd) {
         paymentServ.processPayment(cmd);
     }
 
-    @RabbitListener(queues = "payment.process")
+    @RabbitListener(queues = GENERATE_INVOICE)
     public void handleGenerateInvoiceCmd(GenerateInvoice cmd) {
         paymentServ.generateInvoice(cmd);
     }

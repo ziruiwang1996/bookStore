@@ -12,41 +12,6 @@ public class PaymentRabbitMQConfig {
     public static final String EXCHANGE = "payment.exchange";
 
     @Bean
-    public TopicExchange paymentExchange() {
-        return new TopicExchange(EXCHANGE);
-    }
-
-    @Bean
-    public Queue processPaymentQueue() {
-        return new Queue("payment.process", true);
-    }
-
-    @Bean
-    public Queue paymentSucceededQueue() {
-        return new Queue("payment.succeeded", true);
-    }
-
-    @Bean
-    public Queue paymentFailedQueue() {
-        return new Queue("payment.failed", true);
-    }
-
-    @Bean
-    public Binding bindProcessPayment(Queue processPaymentQueue, TopicExchange paymentExchange) {
-        return BindingBuilder.bind(processPaymentQueue).to(paymentExchange).with("payment.process");
-    }
-
-    @Bean
-    public Binding bindPaymentSucceeded(Queue paymentSucceededQueue, TopicExchange paymentExchange) {
-        return BindingBuilder.bind(paymentSucceededQueue).to(paymentExchange).with("payment.succeeded");
-    }
-
-    @Bean
-    public Binding bindPaymentFailed(Queue paymentFailedQueue, TopicExchange paymentExchange) {
-        return BindingBuilder.bind(paymentFailedQueue).to(paymentExchange).with("payment.failed");
-    }
-
-    @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
@@ -56,5 +21,43 @@ public class PaymentRabbitMQConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter());
         return rabbitTemplate;
+    }
+
+    @Bean
+    public TopicExchange paymentExchange() {
+        return new TopicExchange(EXCHANGE);
+    }
+
+    @Bean
+    public Queue paymentSucceededQueue() {
+        return new Queue(PaymentQueueName.PAYMENT_SUCCEEDED.getName(), true);
+    }
+
+    @Bean
+    public Binding paymentSucceededBinding(Queue paymentSucceededQueue, TopicExchange paymentExchange) {
+        return BindingBuilder.bind(paymentSucceededQueue)
+                .to(paymentExchange).with(PaymentRoutingKey.PAYMENT_SUCCEEDED.getKey());
+    }
+
+    @Bean
+    public Queue paymentFailedQueue() {
+        return new Queue(PaymentQueueName.PAYMENT_FAILED.getName(), true);
+    }
+
+    @Bean
+    public Binding paymentFailedBinding(Queue paymentFailedQueue, TopicExchange paymentExchange) {
+        return BindingBuilder.bind(paymentFailedQueue)
+                .to(paymentExchange).with(PaymentRoutingKey.PAYMENT_FAILED.getKey());
+    }
+
+    @Bean
+    public Queue generateInvoiceQueue() {
+        return new Queue(PaymentQueueName.GENERATE_INVOICE.getName(), true);
+    }
+
+    @Bean
+    public Binding generateInvoiceBinding(Queue generateInvoiceQueue, TopicExchange paymentExchange) {
+        return BindingBuilder.bind(generateInvoiceQueue)
+                .to(paymentExchange).with(PaymentRoutingKey.GENERATE_INVOICE.getKey());
     }
 }

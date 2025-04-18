@@ -1,7 +1,6 @@
 package com.cse687.zirui.bookstore.auth.messaging;
 import com.cse687.zirui.bookstore.auth.domain.command.*;
 import com.cse687.zirui.bookstore.auth.domain.event.*;
-import com.cse687.zirui.bookstore.shared.RoutingKey;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,34 +14,34 @@ public class AuthProducer {
     }
 
     public void publishLoggedInEvt(LoggedIn evt) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.LOGGED_IN.getKey(), evt);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.LOGGED_IN.getKey(), evt);
     }
 
     public void publishLoggedOutEvt(LoggedOut evt) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.LOGGED_OUT.getKey(), evt);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.LOGGED_OUT.getKey(), evt);
     }
 
     public void publishRegisterAccountCmd(RegisterAccount cmd) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.REGISTER_ACCOUNT.getKey(), cmd);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.REGISTER_ACCOUNT.getKey(), cmd);
     }
 
     public void publishAccountRegisteredEvt(AccountRegistered evt) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.ACCOUNT_REGISTERED.getKey(), evt);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.ACCOUNT_REGISTERED.getKey(), evt);
     }
 
     public void publishDeleteAccountCmd(DeleteAccount cmd) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.DELETE_ACCOUNT.getKey(), cmd);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.DELETE_ACCOUNT.getKey(), cmd);
     }
 
     public void publishAccountDeletedEvt(AccountDeleted evt){
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.ACCOUNT_DELETED.getKey(), evt);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.ACCOUNT_DELETED.getKey(), evt);
     }
 
     public void publishCreateCartCmd(CreateCart cmd) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.CREATE_CART.getKey(), cmd);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.CREATE_CART.getKey(), cmd);
     }
 
     public void publishDeleteCartCmd(DeleteCart cmd) {
-        rabbitTemplate.convertAndSend(EXCHANGE, RoutingKey.CREATE_CART.getKey(), cmd);
+        rabbitTemplate.convertAndSend(EXCHANGE, AuthRoutingKey.DELETE_CART.getKey(), cmd);
     }
 }

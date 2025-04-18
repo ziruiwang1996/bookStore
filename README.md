@@ -94,6 +94,7 @@ The application uses RabbitMQ to enable communication between services. Below ar
 
 
 ## Folder Structure
+```
 src/
 ├── main/
 │   ├── java/

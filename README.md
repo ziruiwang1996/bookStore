@@ -118,6 +118,7 @@ src/
                 └── zirui/
                     └── bookstore/
                         └── BookstoreApplicationTests.java
+```
 
 ## Current Limitations
 - The application is still under development.
